@@ -1,11 +1,13 @@
 #pragma once
 #include "wx/wx.h"
-#include "cmain.h"
+#include "cFill.h"
+#include "cMenu.h"
+
 class cApp : public wxApp
 {
 private:
-	cmain* m_frame1 = nullptr;
-public :
+	cMenu* m_frame1 = nullptr;
+public:
 	virtual bool OnInit();
 };
 

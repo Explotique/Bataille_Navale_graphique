@@ -1,36 +1,44 @@
 #include "cmain.h"
 #include "bateau.h"
-
+#include "cFill.h"
+#include <iostream>
+#include <fstream>
+#include "wxBackgroundBitmap.h"
+using namespace std;
 wxBEGIN_EVENT_TABLE(cmain, wxFrame)
 EVT_BUTTON(10001, OnButtonClicked1)
 EVT_BUTTON(10002, OnButtonClicked2)
+EVT_TIMER(1111, timefunction)
 wxEND_EVENT_TABLE()
 
-cmain::cmain() : wxFrame(nullptr, wxID_ANY, "onelonecoder.com", wxPoint(30, 30), wxSize(1400, 800))
+void cmain::timefunction(wxTimerEvent& evt) {
+	wxString s;
+	s = timetostring(time);
+	time--;
+	time_label->SetLabel(s);
+	if (time == 0) {
+		switchsides();
+		time = 15;
+	}
+	evt.Skip();
+}
+cmain::cmain() : wxFrame(nullptr, wxID_ANY, "Match Window", wxPoint(30, 30), wxSize(1400, 800))
 {
-	bateau Porte_Avions(5, "Porte_Avions"), croiseur(4, "croiseur"), contre_torpilleur1(3, "contre_torpilleur1"), contre_torpilleur2(3, "contre_torpilleur2"), torpilleur(2, "torpilleur");
-	bateau l1[5];
-	l1[0] = Porte_Avions;
-	l1[1] = croiseur;
-	l1[2] = contre_torpilleur1;
-	l1[3] = contre_torpilleur2;
-	l1[4] = torpilleur;
-	bateau CUIRASSE(4, "CUIRASSE"), CROISEUR1(3, "CROISEUR1"), CROISEUR2(3, "CROISEUR2"), TORPILLEUR1(2, "TORPILLEUR1"), TORPILLEUR2(2, "TORPILLEUR2"), TORPILLEUR3(2, "TORPILLEUR3"), SOUS_MARIN1(1, "SOUS_MARIN1"), SOUS_MARIN2(1, "SOUS_MARIN2"), SOUS_MARIN3(1, "SOUS_MARIN3"), SOUS_MARIN4(1, "SOUS_MARIN4");
-	bateau l2[10];
-	l2[0] = CUIRASSE;
-	l2[1] = CROISEUR1;
-	l2[2] = CROISEUR2;
-	l2[3] = TORPILLEUR1;
-	l2[4] = TORPILLEUR2;
-	l2[5] = TORPILLEUR3;
-	l2[6] = SOUS_MARIN1;
-	l2[7] = SOUS_MARIN2;
-	l2[8] = SOUS_MARIN3;
-	l2[9] = SOUS_MARIN4;
+	time_label = new wxStaticText(this, wxID_ANY, timetostring(0), wxPoint(700, 30));
+	time_label->SetFont(wxFont(20, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
-	btn = new wxButton*[nFieldWidth * nFieldHeight];
-	nField = new int [nFieldWidth * nFieldHeight];
-	btn2 = new wxButton*[nFieldWidth * nFieldHeight];
+	wxInitAllImageHandlers();
+	wxBitmap TempBitmap;
+	TempBitmap.LoadFile(wxT("lol.jpg"), wxBITMAP_TYPE_JPEG);
+	wxBackgroundBitmap* NotebookBackground = new wxBackgroundBitmap(TempBitmap);
+	this->PushEventHandler(NotebookBackground);
+
+	cFill* fill1 = new cFill(this);
+	fill1->Show();
+	
+	btn = new wxButton * [nFieldWidth * nFieldHeight];
+	nField = new int[nFieldWidth * nFieldHeight];
+	btn2 = new wxButton * [nFieldWidth * nFieldHeight];
 	nField2 = new int[nFieldWidth * nFieldHeight];
 	wxPanel* wesst = new wxPanel(this, wxID_ANY, wxPoint(575, 100), wxSize(350, 500));
 	wxPanel* tahtjoueur1 = new wxPanel(this, wxID_ANY, wxPoint(10, 620), wxSize(500, 150));
@@ -39,21 +47,51 @@ cmain::cmain() : wxFrame(nullptr, wxID_ANY, "onelonecoder.com", wxPoint(30, 30),
 	wxPanel* panel2 = new wxPanel(this, wxID_ANY, wxPoint(995, 100), wxSize(500, 500));
 
 
+	wxBitmap* vide;
+	vide = new wxBitmap();
 
-	wxGridSizer *grid1 = new wxGridSizer(nFieldWidth, nFieldHeight, 0, 0);
-	wxGridSizer *grid2 = new wxGridSizer(nFieldWidth, nFieldHeight, 0, 0);
+	bitmap_btn = new wxBitmapButton * [nFieldWidth * nFieldHeight];
+	bitmap_btn2 = new wxBitmapButton * [nFieldWidth * nFieldHeight];
+
+	panel1->SetBackgroundColour(wxColor(111, 111, 111));
+	panel2->SetBackgroundColour(wxColor(111, 111, 111));
+	wxGridSizer* grid1 = new wxGridSizer(nFieldWidth, nFieldHeight, 1, 1);
+	wxGridSizer* grid2 = new wxGridSizer(nFieldWidth, nFieldHeight, 1, 1);
 	for (int x = 0; x < nFieldWidth; x++)
 	{
 		for (int y = 0; y < nFieldHeight; y++)
 		{
-			btn[y*nFieldHeight + x] = new wxButton(panel1, 10000 + (y * nFieldWidth + x));
-			grid1->Add(btn[y* nFieldWidth + x], 1, wxEXPAND | wxALL);
-			btn2[y*nFieldHeight + x] = new wxButton(panel2, 10000 + (y * nFieldWidth + x));
-			grid2->Add(btn2[y* nFieldWidth + x], 2, wxEXPAND | wxALL);
-			btn[y*nFieldWidth + x]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::OnButtonClicked1, this);
-			btn2[y*nFieldWidth + x]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::OnButtonClicked2, this);
-			nField[y*nFieldWidth + x] = 0;
-			nField2[y*nFieldWidth + x] = 0;
+			/*
+			btn[y * nFieldHeight + x] = new wxButton(panel1, 10000 + (y * nFieldWidth + x));
+			btn[y * nFieldHeight + x]->Enable(false);
+
+			grid1->Add(btn[y * nFieldWidth + x], 1, wxEXPAND | wxALL);
+			btn2[y * nFieldHeight + x] = new wxButton(panel2, 20000 + (y * nFieldWidth + x));
+			btn2[y * nFieldHeight + x]->Enable(false);
+
+			grid2->Add(btn2[y * nFieldWidth + x], 2, wxEXPAND | wxALL);
+			btn[y * nFieldWidth + x]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::OnButtonClicked1, this);
+			btn2[y * nFieldWidth + x]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::OnButtonClicked1, this);
+			nField[y * nFieldWidth + x] = 0;
+			nField2[y * nFieldWidth + x] = 0;
+			*/
+			bitmap_btn[y * nFieldHeight + x] = new wxBitmapButton(panel1, 10000 + (y * nFieldWidth + x), *vide, wxDefaultPosition, wxSize(49, 49), wxBORDER_NONE);
+			bitmap_btn[y * nFieldHeight + x]->Enable(false);
+
+			grid1->Add(bitmap_btn[y * nFieldWidth + x], 4, wxEXPAND | wxALL);
+			bitmap_btn2[y * nFieldHeight + x] = new wxBitmapButton(panel2, 20000 + (y * nFieldWidth + x), *vide, wxDefaultPosition, wxSize(49, 49), wxBORDER_NONE);
+			bitmap_btn2[y * nFieldHeight + x]->Enable(false);
+
+			grid2->Add(bitmap_btn2[y * nFieldWidth + x], 4, wxEXPAND | wxALL);
+			bitmap_btn[y * nFieldWidth + x]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::OnButtonClicked1, this);
+			bitmap_btn2[y * nFieldWidth + x]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::OnButtonClicked1, this);
+
+			bitmap_btn[y * nFieldHeight + x]->SetBackgroundColour(wxColor(141, 179, 184));
+			bitmap_btn2[y * nFieldHeight + x]->SetBackgroundColour(wxColor(141, 179, 184));
+
+			nField[y * nFieldWidth + x] = 0;
+			nField2[y * nFieldWidth + x] = 0;
+
 		}
 	}
 	panel1->SetSizer(grid1);
@@ -61,122 +99,229 @@ cmain::cmain() : wxFrame(nullptr, wxID_ANY, "onelonecoder.com", wxPoint(30, 30),
 	panel1->Layout();
 	panel2->Layout();
 
+	startgame = new wxButton(this, wxID_ANY,"Start game", wxPoint(750, 700));
+	startgame->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::onstartgame, this);
 
-
-
-
+	player1_label = new wxStaticText(tahtjoueur1, wxID_ANY, player1_name, wxPoint(0, 0));
+	player2_label = new wxStaticText(tahtjoueur2, wxID_ANY, player2_name, wxPoint(0, 0));
+	datetime = new wxTimer(this, 1111);
+	
 }
-
-
 
 
 cmain::~cmain()
 {
-
+	Destroy();
+	this->PopEventHandler(true);
+	datetime->Stop();
 }
-void cmain::OnButtonClicked1(wxCommandEvent &evt)
-{  
-	int x = (evt.GetId() - 10000) % nFieldWidth;
-	int y = (evt.GetId() - 10000) / nFieldWidth;
-	if (bFirstClick)
-	{
-		int mines = 30;
-		while (mines)
-		{
-			int rx = rand() % nFieldWidth;
-			int ry = rand() % nFieldHeight;
-			if (nField[rx* nFieldWidth + rx] == 0 && rx != x && ry != y)
-			{
-				nField[ry * nFieldWidth + rx] = -1;
-				mines--;
-			}
+
+void cmain::OnButtonClicked1(wxCommandEvent& evt)
+{
+	if (evt.GetId() / 10000 == 1) {
+		int x = (evt.GetId() - 10000) % nFieldWidth;
+		int y = (evt.GetId() - 10000) / nFieldWidth;
+		if (nField[evt.GetId() - 10000] == 1) {
+			bitmap_btn[evt.GetId() - 10000]->SetBitmap(wxImage("./porteavion/porteavion_" + to_string(1) + ".png", wxBITMAP_TYPE_PNG)); //bomb
+			bitmap_btn[evt.GetId() - 10000]->Enable(false);
+			player2score--;
 		}
-		bFirstClick = false;
+		else {
+			bitmap_btn[evt.GetId() - 10000]->SetBitmap(wxImage("./porteavion/porteavion_" + to_string(2) + ".png", wxBITMAP_TYPE_PNG)); //water
+			bitmap_btn[evt.GetId() - 10000]->Enable(false);
+		}
+		if (player2score == 0) {
+			endgame();
+			wxMessageBox("Player 1 won!!!!");
+		}
+		else {
+			time = 15;
+			switchsides();
+		}
 	}
-	btn[y*nFieldWidth + x]->Enable(false);
-	if (nField[y*nFieldWidth + x] == -1)
-	{
-		wxMessageBox("BOOOOOOOOOOM GAME OVER");
-		bFirstClick = true;
-		for(x=0;x<nFieldWidth;x++)
-			for (y = 0; y < nFieldHeight; y++)
-			{
-				nField[y*nFieldWidth + x] = 0;
-				btn[y*nFieldWidth + x]->SetLabel("");
-				btn[y*nFieldWidth + x]->Enable(true);
+	else {
+		int x2 = (evt.GetId() - 20000) % nFieldWidth;
+		int y2 = (evt.GetId() - 20000) / nFieldWidth;
 
-			}
-
-	}
-	else
-	{
-		int mine_count = 0;
-		for(int i=-1;i<2;i++)
-			for (int j = -1; j < 2; j++)
-			{
-				if (x + i >= 0 && x + i < nFieldWidth && y + j < nFieldHeight)
-				{
-					if (nField[(y + j) * nFieldWidth + (x + i)] == -1)
-						mine_count++;
-				}
-			}
-		if (mine_count > 0)
-		{
-			btn[y*nFieldWidth + x]->SetLabel(std::to_string(mine_count));
+		if (nField2[evt.GetId() - 20000] == 1) {
+			bitmap_btn2[evt.GetId() - 20000]->SetBitmap(wxImage("./porteavion/porteavion_" + to_string(1) + ".png", wxBITMAP_TYPE_PNG)); //bomb
+			bitmap_btn2[evt.GetId() - 20000]->Enable(false);
+			player1score--;
+		}
+		else {
+			bitmap_btn2[evt.GetId() - 20000]->SetBitmap(wxImage("./porteavion/porteavion_" + to_string(2) + ".png", wxBITMAP_TYPE_PNG)); //water
+			bitmap_btn2[evt.GetId() - 20000]->Enable(false);
+			//btn2[evt.GetId() - 20000]->SetBackgroundColour(wxColor(0, 0, 0));
+		}
+		if (player1score == 0) {
+			endgame();
+			wxMessageBox("Player 2 won!!!!");
+		}
+		else {
+			time = 15;
+			switchsides();
 		}
 	}
 	evt.Skip();
 }
-void cmain::OnButtonClicked2(wxCommandEvent &evt)
+void cmain::OnButtonClicked2(wxCommandEvent& evt)
 {
 	int x2 = (evt.GetId() - 10000) % nFieldWidth;
 	int y2 = (evt.GetId() - 10000) / nFieldWidth;
-	if (bFirstClick2)
-	{
-		int mines2 = 30;
-		while (mines2)
-		{
-			int rx2 = rand() % nFieldWidth;
-			int ry2 = rand() % nFieldHeight;
-			if (nField2[rx2* nFieldWidth + rx2] == 0 && rx2 != x2 && ry2 != y2)
-			{
-				nField2[ry2 * nFieldWidth + rx2] = -1;
-				mines2--;
-			}
-		}
-		bFirstClick2 = false;
-	}
-	btn2[y2*nFieldWidth + x2]->Enable(false);
-	if (nField2[y2*nFieldWidth + x2] == -1)
-	{
-		wxMessageBox("BOOOOOOOOOOM GAME OVER");
-		bFirstClick2 = true;
-		for (x2 = 0; x2 < nFieldWidth; x2++)
-			for (y2 = 0; y2 < nFieldHeight; y2++)
-			{
-				nField2[y2*nFieldWidth + x2] = 0;
-				btn2[y2*nFieldWidth + x2]->SetLabel("");
-				btn2[y2*nFieldWidth + x2]->Enable(true);
 
-			}
-
+	if (nField2[evt.GetId() - 10000] == 1) {
+		btn2[evt.GetId() - 10000]->SetLabel("X");
+		btn2[evt.GetId() - 10000]->Enable(false);
+		player1score--;
 	}
-	else
-	{
-		int mine_count2 = 0;
-		for (int i = -1; i < 2; i++)
-			for (int j = -1; j < 2; j++)
-			{
-				if (x2 + i >= 0 && x2 + i < nFieldWidth && y2 + j < nFieldHeight)
-				{
-					if (nField2[(y2 + j) * nFieldWidth + (x2 + i)] == -1)
-						mine_count2++;
-				}
-			}
-		if (mine_count2 > 0)
-		{
-			btn2[y2*nFieldWidth + x2]->SetLabel(std::to_string(mine_count2));
-		}
+	else {
+		btn2[evt.GetId() - 10000]->SetLabel("O");
+		btn2[evt.GetId() - 10000]->Enable(false);
+		btn2[evt.GetId() - 10000]->SetBackgroundColour(wxColor(0, 0, 0));
+	}
+	if (player1score == 0) {
+		endgame();
+		wxMessageBox("Player 2 won!!!!");
+	}
+	else {
+		time = 15;
+		switchsides();
 	}
 	evt.Skip();
+}
+
+void cmain::affiche() {
+	if (lastplayer) {
+		/*
+		for (int x = 0; x < nFieldWidth; x++)
+		{
+			for (int y = 0; y < nFieldHeight; y++)
+			{
+				if (nField[y * nFieldWidth + x] != 0) btn[y * nFieldHeight + x]->SetLabel("#");
+			}
+		}		
+		for (int x = 0; x < nFieldWidth; x++)
+		{
+			for (int y = 0; y < nFieldHeight; y++)
+			{
+				if (nField2[y * nFieldWidth + x] != 0) btn2[y * nFieldHeight + x]->SetLabel("#");
+			}
+		}
+		*/
+	}
+	else {
+		nField = nField2;
+		cFill* f2 = new cFill(this);
+		f2->Show();
+	}
+	lastplayer = true;
+}
+
+void cmain::onstartgame(wxCommandEvent& evt) {
+	if (player1) {
+		for (int x = 0; x < nFieldWidth; x++)
+		{
+			for (int y = 0; y < nFieldHeight; y++)
+			{
+				bitmap_btn[y * nFieldHeight + x]->Enable(true);
+				bitmap_btn2[y * nFieldHeight + x]->Enable(false);
+			}
+		}
+	}
+	else {
+		for (int x = 0; x < nFieldWidth; x++)
+		{
+			for (int y = 0; y < nFieldHeight; y++)
+			{
+				bitmap_btn2[y * nFieldHeight + x]->Enable(true);
+				bitmap_btn[y * nFieldHeight + x]->Enable(false);
+			}
+		}
+	}
+	player1 = !player1;
+	startgame->Show(false);
+
+	datetime->Start(1000);
+	evt.Skip();
+}
+
+void cmain::switchsides() {
+	if (player1) {
+		for (int x = 0; x < nFieldWidth; x++)
+		{
+			for (int y = 0; y < nFieldHeight; y++)
+			{
+				if (bitmap_btn[y * nFieldHeight + x]->GetLabel() == "") bitmap_btn[y * nFieldHeight + x]->Enable(true);
+				if (bitmap_btn2[y * nFieldHeight + x]->GetLabel() == "") bitmap_btn2[y * nFieldHeight + x]->Enable(false);
+			}
+		}
+	}
+	else {
+		for (int x = 0; x < nFieldWidth; x++)
+		{
+			for (int y = 0; y < nFieldHeight; y++)
+			{
+				if (bitmap_btn2[y * nFieldHeight + x]->GetLabel() == "") bitmap_btn2[y * nFieldHeight + x]->Enable(true);
+				if (bitmap_btn[y * nFieldHeight + x]->GetLabel() == "") bitmap_btn[y * nFieldHeight + x]->Enable(false);
+			}
+		}
+	}
+	player1 = !player1;
+}
+
+void cmain::endgame() {
+
+	wxFrame* end_frame = new wxFrame(this, wxID_ANY, "End game", wxPoint(200, 100), wxSize(800, 600), wxCAPTION | wxFRAME_FLOAT_ON_PARENT);
+	wxButton* quit_btn = new wxButton(end_frame, wxID_ANY, "Quit", wxPoint(50,500));
+	quit_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::onquit, this);
+	wxButton* replay = new wxButton(end_frame, wxID_ANY, "Replay", wxPoint(120, 500));
+	replay->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &cmain::onreplay, this);
+	wxStaticText* winner = new wxStaticText(end_frame, wxID_ANY, "qsdqsdqsd");
+	ofstream output("matchs.txt", ios::app);
+	
+	if (player1score <= player2score) {
+		winner->SetLabel(player2_label->GetLabel());
+		output << player1_label->GetLabel() + " 0 " + player2_label->GetLabel() + " " + "1" << endl;
+
+	}
+	else {
+		winner->SetLabel(player1_label->GetLabel());
+		output << player1_label->GetLabel() + " 1 " + player2_label->GetLabel() + " " + "0" << endl;
+
+	}
+	winner->SetFont(wxFont(21, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+	output.close();
+	end_frame->Show();
+}
+
+void cmain::onquit(wxCommandEvent& evt) {
+	this->Close();
+	evt.Skip();
+}
+
+void cmain::onreplay(wxCommandEvent& evt) {
+	this->Close();
+	cmain* frame = new cmain();
+
+	evt.Skip();
+}
+
+wxString cmain::timetostring(int x) {
+	wxString h, m, s;
+	int hh, mm, ss;
+	ss = x % 60;
+	x = x / 60;
+	mm = x % 60;
+	x = x / 60;
+	hh = x % 60;
+	h << hh;
+	m << mm;
+	s << ss;
+	wxString res;
+	if (ss < 10 && mm < 10) res =  "0" + s;
+	else if (ss < 10 && mm >= 10) res =  "0" + s;
+	else if (ss >= 10 && mm < 10) res =   s;
+	else res =  ":" + s;
+	return res;
 }
